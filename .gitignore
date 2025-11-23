@@ -7,8 +7,6 @@ venv/
 data/
 *.csv
 
-model/
-
 .vscode/
 
 .env

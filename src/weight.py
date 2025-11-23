@@ -7,7 +7,7 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.pipeline import Pipeline
 
-df = pd.read_csv("data/sample_data.csv")
+df = pd.read_csv("data/sample.csv")
 
 y = df["weight"]
 

@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 
-def generate_sample_data(n=5000, out_file="data/sample_data.csv"):
+def generate_sample_data(n=5000, out_file="data/sample.csv"):
     rng = np.random.default_rng(42)
     
     nodes = ["A", "B", "C", "D", "E"]
