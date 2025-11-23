@@ -12,4 +12,10 @@
     <string name="route_confirmation">Route Confirmation</string>
     <string name="confirm_locations">Confirm Locations</string>
     <string name="change_locations">Change Locations</string>
+    <string name="submit_report">Submit Report</string>
+    <string name="brief_description_optional">Brief Description (Optional)</string>
+    <string name="type_of_issue">Type of Issue</string>
+    <string name="road_junction_name">Road/Junction Name</string>
+    <string name="report_a_pothole_or_accident">Report a Pothole or Accident</string>
+    <string name="navigation_menu">Navigation Menu</string>
 </resources>

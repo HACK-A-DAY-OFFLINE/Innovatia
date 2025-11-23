@@ -5,7 +5,19 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/blanched_almond"
-    tools:context=".MainActivity">
+    tools:context=".ReportActivity">
+
+    <!-- Toolbar for Back Button and Title -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/reportToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/dark_greyblue"
+        app:title="Report Road Incidents"
+        app:titleTextColor="@color/white"
+        app:navigationIcon="@drawable/ic_arrow_back_24"
+        app:navigationIconTint="@color/white"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline_start"
@@ -21,107 +33,93 @@
         android:orientation="vertical"
         app:layout_constraintGuide_end="24dp" />
 
-    <!-- NEW: Menu/Hamburger Button -->
-    <ImageButton
-        android:id="@+id/menuButton"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_marginTop="16dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="@string/navigation_menu"
-        android:scaleType="fitCenter"
-        android:src="@drawable/ic_menu_24"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:tint="@color/dark_greyblue" />
-
+    <!-- Report Title -->
     <TextView
-        android:id="@+id/titleTextView"
-        android:layout_width="wrap_content"
+        android:id="@+id/reportTitle"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="32dp"
-        android:layout_marginTop="64dp"
-        android:text="@string/plan_your_route"
-        android:textSize="24sp"
+        android:text="@string/report_a_pothole_or_accident"
+        android:textSize="22sp"
         android:textStyle="bold"
         android:textColor="@color/dark_greyblue"
+        android:layout_marginTop="24dp"
         app:layout_constraintStart_toStartOf="@id/guideline_start"
-        app:layout_constraintTop_toBottomOf="@id/menuButton" />
+        app:layout_constraintEnd_toEndOf="@id/guideline_end"
+        app:layout_constraintTop_toBottomOf="@id/reportToolbar" />
 
-    <!-- Source Input Layout (Removed layout_constraintTop_toTopOf="parent" and updated constraint) -->
+    <!-- 1. Location Input (Auto-complete for known segments) -->
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/sourceLayout"
+        android:id="@+id/reportLocationLayout"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:hint="@string/source_location"
+        android:layout_marginTop="24dp"
+        android:hint="@string/road_junction_name"
         app:layout_constraintEnd_toEndOf="@id/guideline_end"
         app:layout_constraintStart_toStartOf="@id/guideline_start"
-        app:layout_constraintTop_toBottomOf="@id/titleTextView">
+        app:layout_constraintTop_toBottomOf="@id/reportTitle">
 
         <AutoCompleteTextView
-            android:id="@+id/sourceAutoComplete"
+            android:id="@+id/reportLocationAutoComplete"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textCapWords"
+            android:maxLines="1"
             tools:ignore="LabelFor" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Destination Input Layout -->
+    <!-- 2. Issue Type Dropdown -->
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/destinationLayout"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:hint="@string/destination_location"
-        app:layout_constraintEnd_toEndOf="@id/guideline_end"
-        app:layout_constraintStart_toStartOf="@id/guideline_start"
-        app:layout_constraintTop_toBottomOf="@id/sourceLayout">
-
-        <AutoCompleteTextView
-            android:id="@+id/destinationAutoComplete"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textCapWords"
-            tools:ignore="LabelFor" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <!-- Vehicle Type Dropdown -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/vehicleLayout"
+        android:id="@+id/issueTypeLayout"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:hint="@string/vehicle_type"
+        android:hint="@string/type_of_issue"
         app:layout_constraintEnd_toEndOf="@id/guideline_end"
         app:layout_constraintStart_toStartOf="@id/guideline_start"
-        app:layout_constraintTop_toBottomOf="@id/destinationLayout">
+        app:layout_constraintTop_toBottomOf="@id/reportLocationLayout">
 
         <AutoCompleteTextView
-            android:id="@+id/vehicleTypeAutoComplete"
+            android:id="@+id/issueTypeAutoComplete"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="none"
             tools:ignore="LabelFor" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <Button
-        android:id="@+id/confirmButton"
-        android:layout_width="300dp"
-        android:layout_height="60dp"
-        android:layout_marginTop="32dp"
-        android:backgroundTint="@color/dark_greyblue"
-        android:padding="12dp"
-        android:text="@string/confirm_and_view_map"
-        android:textColor="@color/white"
-        android:textSize="16sp"
-        app:layout_constraintBottom_toBottomOf="parent"
+    <!-- 3. Description Input -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/descriptionLayout"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:hint="@string/brief_description_optional"
         app:layout_constraintEnd_toEndOf="@id/guideline_end"
         app:layout_constraintStart_toStartOf="@id/guideline_start"
-        app:layout_constraintTop_toBottomOf="@id/vehicleLayout"
-        app:layout_constraintVertical_bias="0.2" />
+        app:layout_constraintTop_toBottomOf="@id/issueTypeLayout">
+
+        <EditText
+            android:id="@+id/descriptionEditText"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:gravity="top"
+            android:inputType="textMultiLine" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- 4. Submit Button -->
+    <Button
+        android:id="@+id/submitReportButton"
+        android:layout_width="0dp"
+        android:layout_height="60dp"
+        android:text="@string/submit_report"
+        android:textSize="16sp"
+        android:backgroundTint="@color/dark_greyblue"
+        android:textColor="@color/white"
+        android:layout_marginBottom="32dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@id/guideline_end"
+        app:layout_constraintStart_toStartOf="@id/guideline_start" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

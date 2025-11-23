@@ -4,44 +4,58 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
+    android:padding="24dp"
+    android:background="@color/blanched_almond"
     tools:context=".ConfirmMapActivity">
 
     <TextView
-        android:id="@+id/confirmationTitle"
+        android:id="@+id/titleTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/route_confirmation"
+        android:text="Confirm Route Search"
         android:textSize="24sp"
         android:textStyle="bold"
+        android:textColor="@color/dark_greyblue"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="32dp" />
 
     <TextView
-        android:id="@+id/confirmationText"
+        android:id="@+id/routeDetailsTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="@string/ready_after_route"
-        android:textSize="16sp"
+        android:layout_marginTop="32dp"
+        android:textSize="18sp"
+        android:textColor="@color/dark_greyblue"
         android:gravity="center"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/confirmationTitle"
+        tools:text="Route Details:\nSource: MG Road\nDestination: Koramangala\nVehicle: Sedan"
+        app:layout_constraintTop_toBottomOf="@id/titleTextView"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"/>
 
     <Button
         android:id="@+id/searchRouteButton"
         android:layout_width="300dp"
-        android:layout_height="wrap_content"
-        android:text="@string/search_for_best_route"
+        android:layout_height="60dp"
+        android:layout_marginTop="64dp"
         android:backgroundTint="@color/dark_greyblue"
-        android:textColor="@color/white"
         android:padding="12dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:text="Search for Best Route"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        app:layout_constraintTop_toBottomOf="@id/routeDetailsTextView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/searchRouteButton"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="32dp" />
+        android:layout_marginTop="16dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
