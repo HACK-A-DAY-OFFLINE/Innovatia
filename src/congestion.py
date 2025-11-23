@@ -11,7 +11,7 @@ CANDIDATES = [
     "datalink_output/segments_features_enriched_tomtom.csv",
     "datalink_output/segments_features_enriched.csv",
     "datalink_output/segments_features.csv",
-    "/mnt/data/segments_features_enriched_tomtom.csv",  # fallback to uploaded path
+    "/mnt/data/segments_features_enriched_tomtom.csv", 
 ]
 
 MODEL_DIR = "model"
