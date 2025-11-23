@@ -1,121 +1,81 @@
-# demo_map_real.py
-import joblib
+# demo_turns.py
 import pandas as pd
-import heapq
+import joblib
 import folium
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+import heapq
 
-# -----------------------------
-# Config
-# -----------------------------
-CSV_FILE = "data/mg_to_cubbon.csv"
-WEIGHT_MODEL_FILE = "model/weight.joblib"
-MAP_FILE = "route_map.html"
+# -------------------- SAMPLE DATA --------------------
+df = pd.DataFrame([
+    {"source":"MG_Road","destination":"Node1","distance":202,"road_quality":4.59,"lane_count":3,"road_type":"urban","speed_limit_kph":40,"tolls":0,"foot_traffic":0.6,"event":"none","vehicle_type":"sedan","historical_congestion":0.45,"accident":"no","pothole_reports":2,"weight":64.43,"geometry":[[12.9716,77.5946],[12.97165,77.5947],[12.9717,77.5948]]},
+    {"source":"Node1","destination":"Node2","distance":187,"road_quality":3.67,"lane_count":3,"road_type":"highway","speed_limit_kph":40,"tolls":0,"foot_traffic":0.97,"event":"none","vehicle_type":"sedan","historical_congestion":0.83,"accident":"no","pothole_reports":1,"weight":61.89,"geometry":[[12.9717,77.5948],[12.9720,77.5950],[12.9725,77.5955]]},
+    {"source":"Node2","destination":"Node3","distance":291,"road_quality":4.98,"lane_count":1,"road_type":"highway","speed_limit_kph":50,"tolls":0,"foot_traffic":0.52,"event":"none","vehicle_type":"sedan","historical_congestion":0.43,"accident":"no","pothole_reports":0,"weight":90.82,"geometry":[[12.9725,77.5955],[12.9730,77.5960],[12.9735,77.5965]]},
+    {"source":"Node3","destination":"Cubbon_Park","distance":158,"road_quality":3.8,"lane_count":3,"road_type":"highway","speed_limit_kph":50,"tolls":0,"foot_traffic":0.79,"event":"none","vehicle_type":"sedan","historical_congestion":0.2,"accident":"no","pothole_reports":3,"weight":51.48,"geometry":[[12.9735,77.5965],[12.9740,77.5970],[12.9745,77.5975]]}
+])
 
-# -----------------------------
-# Load model and data
-# -----------------------------
-weight_model = joblib.load(WEIGHT_MODEL_FILE)
-df = pd.read_csv(CSV_FILE)
-
-# -----------------------------
-# Build graph
-# -----------------------------
+# -------------------- BUILD GRAPH --------------------
 graph = {}
-for idx, row in df.iterrows():
-    start = row['source']
-    end = row['destination']
-    features = row.drop(['source', 'destination']).to_frame().T
-    weight = weight_model.predict(features)[0]
+segment_coords = {}
+for _, row in df.iterrows():
+    start, end = row["source"], row["destination"]
+    graph.setdefault(start, []).append((end, row["weight"]))
+    segment_coords[(start,end)] = row["geometry"]
 
-    if start not in graph:
-        graph[start] = []
-    graph[start].append((end, weight))
-
-# -----------------------------
-# Node coordinates (intermediate points along road)
-# -----------------------------
-coords = {
-    "MG_Road": [12.9716, 77.5946],
-    "Turn1": [12.9720, 77.5950],
-    "Turn2": [12.9728, 77.5958],
-    "Node1": [12.9735, 77.5965],
-    "Turn3": [12.9742, 77.5972],
-    "Node2": [12.9748, 77.5979],
-    "Turn4": [12.9755, 77.5985],
-    "Node3": [12.9760, 77.5989],
-    "Cubbon_Park": [12.9766, 77.5990]
-}
-
-# -----------------------------
-# Heuristic
-# -----------------------------
-def heuristic(node1, node2):
+# -------------------- A* ALGORITHM --------------------
+def heuristic(n1,n2):
     return 0
 
-# -----------------------------
-# A* algorithm
-# -----------------------------
-def a_star(graph, start, goal):
-    if start not in graph:
-        return [None], 0
-    open_set = []
-    heapq.heappush(open_set, (0, start))
+def a_star(graph,start,goal):
+    if start not in graph or goal not in {e for edges in graph.values() for e,_ in edges}:
+        return [None],0
+    open_set = [(0,start)]
     came_from = {}
-    g_score = {node: float('inf') for node in graph}
-    g_score[start] = 0
-
+    g_score = {node:float('inf') for node in graph}
+    g_score[start]=0
     while open_set:
-        current_f, current = heapq.heappop(open_set)
-        if current == goal:
-            path = [current]
+        _,current = heapq.heappop(open_set)
+        if current==goal:
+            path=[current]
             while current in came_from:
-                current = came_from[current]
+                current=came_from[current]
                 path.append(current)
-            path.reverse()
-            return path, g_score[goal]
+            return path[::-1], g_score[goal]
+        for neighbor,weight in graph.get(current,[]):
+            tentative=g_score[current]+weight
+            if tentative<g_score.get(neighbor,float('inf')):
+                came_from[neighbor]=current
+                g_score[neighbor]=tentative
+                heapq.heappush(open_set,(tentative,neighbor))
+    return [None],0
 
-        for neighbor, w in graph.get(current, []):
-            tentative_g = g_score[current] + w
-            if tentative_g < g_score.get(neighbor, float('inf')):
-                came_from[neighbor] = current
-                g_score[neighbor] = tentative_g
-                heapq.heappush(open_set, (tentative_g + heuristic(neighbor, goal), neighbor))
+# -------------------- FULL COORDINATES FOR PATH --------------------
+def path_with_coords(graph,start,goal,segment_coords):
+    path,total=a_star(graph,start,goal)
+    if not path or path==[None]:
+        return [],0
+    full_coords=[]
+    for i in range(len(path)-1):
+        seg = segment_coords.get((path[i],path[i+1]),[])
+        # Include all intermediate nodes for turns
+        full_coords.extend(seg if i==0 else seg[1:])
+    return full_coords,total
 
-    return [None], 0
-
-# -----------------------------
-# Run demo
-# -----------------------------
-source_node = "MG_Road"
-dest_node = "Cubbon_Park"
-
-path, total_weight = a_star(graph, source_node, dest_node)
-
-print("Best path:", path)
-print(f"Total predicted weight: {total_weight:.2f}")
-
-# -----------------------------
-# Visualize with Folium
-# -----------------------------
-m = folium.Map(location=coords[source_node], zoom_start=17)
-
-# Draw polyline along all nodes in path
-for i in range(len(path)-1):
-    folium.PolyLine(
-        [coords[path[i]], coords[path[i+1]]],
-        color="blue",
-        weight=5,
-        opacity=0.8
-    ).add_to(m)
-
-# Add markers
-for node in path:
-    folium.Marker(
-        coords[node],
-        tooltip=node,
-        icon=folium.Icon(color="green" if node==dest_node else "red")
-    ).add_to(m)
-
-# Save map
-m.save(MAP_FILE)
-print(f"Map saved to {MAP_FILE}")
+# -------------------- RUN DEMO --------------------
+coords,total = path_with_coords(graph,"MG_Road","Cubbon_Park",segment_coords)
+if not coords:
+    print("No valid path found")
+else:
+    print("Best path coordinates:", coords)
+    print("Total predicted weight:", round(total,2))
+    m = folium.Map(location=coords[0],zoom_start=16)
+    folium.PolyLine(coords,color="blue",weight=5).add_to(m)
+    folium.Marker(coords[0],tooltip="Start",icon=folium.Icon(color="green")).add_to(m)
+    folium.Marker(coords[-1],tooltip="End",icon=folium.Icon(color="red")).add_to(m)
+    # Add markers for every intermediate turn
+    for pt in coords[1:-1]:
+        folium.CircleMarker(pt,radius=3,color="orange").add_to(m)
+    m.save("demo_turns_map.html")
+    print("Map saved to demo_turns_map.html")
