@@ -11,6 +11,8 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.textfield.TextInputEditText;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,6 +21,35 @@ public class MainActivity extends AppCompatActivity {
     private AutoCompleteTextView sourceAutoComplete;
     private AutoCompleteTextView destinationAutoComplete;
     private AutoCompleteTextView vehicleTypeAutoComplete;
+
+    // Hardcoded locations for auto-complete simulation
+    // NOTE: In a real app, you would fetch these from GeoJsonParserUtility or a database.
+    private final String[] locationNames = new String[] {
+            "MG Road", "Cubbon Park", "Koramangala", "Indiranagar", "Electronic City",
+            "Silk Board Junction", "Shivajinagar"
+    };
+
+    // Placeholder coordinates for the above locations (lat, lon)
+    private final double[][] locationCoords = new double[][] {
+            {12.9757, 77.6074}, // MG Road
+            {12.9759, 77.5946}, // Cubbon Park
+            {12.9352, 77.6245}, // Koramangala
+            {12.9738, 77.6406}, // Indiranagar
+            {12.8465, 77.6655}, // Electronic City
+            {12.9359, 77.6256}, // Silk Board Junction
+            {12.9839, 77.6033}  // Shivajinagar
+    };
+
+    // Helper to get coordinates by name
+    private double[] getCoordsByName(String name) {
+        for (int i = 0; i < locationNames.length; i++) {
+            if (locationNames[i].equalsIgnoreCase(name)) {
+                return locationCoords[i];
+            }
+        }
+        return null;
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,12 +72,7 @@ public class MainActivity extends AppCompatActivity {
         vehicleTypeAutoComplete.setAdapter(vehicleAdapter);
 
 
-        // --- 2. Location Suggestions Adapter (From GeoJSON Utility) ---
-        // Load the human-readable location names (Keys from the utility map)
-        List<String> locationNames = new ArrayList<>(
-                GeoJsonParserUtility.loadLocationCoordinates(this).keySet()
-        );
-
+        // --- 2. Location Adapter ---
         ArrayAdapter<String> locationAdapter = new ArrayAdapter<>(
                 this,
                 android.R.layout.simple_dropdown_item_1line,
@@ -63,19 +89,35 @@ public class MainActivity extends AppCompatActivity {
         confirmButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String source = sourceAutoComplete.getText().toString().trim();
-                String destination = destinationAutoComplete.getText().toString().trim();
+                String sourceName = sourceAutoComplete.getText().toString().trim();
+                String destinationName = destinationAutoComplete.getText().toString().trim();
                 String vehicleType = vehicleTypeAutoComplete.getText().toString().trim();
 
-                if (source.isEmpty() || destination.isEmpty() || vehicleType.isEmpty()) {
+                if (sourceName.isEmpty() || destinationName.isEmpty() || vehicleType.isEmpty()) {
                     Toast.makeText(MainActivity.this, "Please fill all fields", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                Intent intent = new Intent(MainActivity.this, MapViewActivity.class);
 
-                intent.putExtra("SOURCE_KEY", source);
-                intent.putExtra("DESTINATION_KEY", destination);
+                double[] sourceCoords = getCoordsByName(sourceName);
+                double[] destCoords = getCoordsByName(destinationName);
+
+                if (sourceCoords == null || destCoords == null) {
+                    Toast.makeText(MainActivity.this, "Please select a valid location from the suggestions.", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                // Launch ConfirmMapActivity with all necessary details including coordinates
+                Intent intent = new Intent(MainActivity.this, ConfirmMapActivity.class);
+
+                intent.putExtra("SOURCE_NAME_KEY", sourceName);
+                intent.putExtra("DESTINATION_NAME_KEY", destinationName);
                 intent.putExtra("VEHICLE_TYPE_KEY", vehicleType);
+
+                // Pass coordinates for the API call in the next activity
+                intent.putExtra("SOURCE_LAT", sourceCoords[0]);
+                intent.putExtra("SOURCE_LON", sourceCoords[1]);
+                intent.putExtra("DESTINATION_LAT", destCoords[0]);
+                intent.putExtra("DESTINATION_LON", destCoords[1]);
 
                 startActivity(intent);
             }

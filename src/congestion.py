@@ -1,7 +1,7 @@
-# congestion.py
-import os
 import pandas as pd
+import numpy as np
 import joblib
+import os
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.ensemble import RandomForestRegressor
@@ -45,36 +45,27 @@ numeric_candidates = [
     "pothole_risk", "accident_risk"
 ]
 
-categorical_candidates = [
-    "road_type", "surface_type", "surface", "provenance", "lit", "one_way"
+categorical = [
+    "road_type", "event", "vehicle_type", "accident"
 ]
 
-numeric = [c for c in numeric_candidates if c in df.columns]
-categorical = [c for c in categorical_candidates if c in df.columns]
-
-print("Numeric features:", numeric)
-print("Categorical features:", categorical)
-
-# Ensure there is at least one numeric feature
-if not numeric and not categorical:
-    raise ValueError("No usable features found in dataset.")
-
-X = df[numeric + categorical]
-y = df["predicted_congestion"]
-
-preprocessor = ColumnTransformer(
+preprocess = ColumnTransformer(
     transformers=[
-        ("num", StandardScaler(), numeric) if numeric else ("num", "passthrough", []),
-        ("cat", OneHotEncoder(handle_unknown="ignore"), categorical) if categorical else ("cat", "passthrough", [])
+        ("num", StandardScaler(), numeric),
+        ("cat", OneHotEncoder(handle_unknown="ignore"), categorical)
     ]
 )
 
-model = Pipeline([
-    ("preprocess", preprocessor),
-    ("est", RandomForestRegressor(n_estimators=200, random_state=42))
+model = RandomForestRegressor(n_estimators=200, random_state=42)
+
+pipeline = Pipeline([
+    ("preprocess", preprocess),
+    ("model", model)
 ])
 
-print("Training congestion model...")
-model.fit(X, y)
-joblib.dump(model, OUT_MODEL)
-print("Saved congestion model to", OUT_MODEL)
+pipeline.fit(features, y)
+
+os.makedirs("model", exist_ok=True)
+joblib.dump(pipeline, "model/congestion.joblib")
+
+print("Congestion model saved successfully!")
